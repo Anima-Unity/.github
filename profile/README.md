@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="https://example.com/logo_anima_unity.png" alt="Logo Anima Unity" width="150"/>
-</p>
+<p align="center"><img src="logo-lockup.png" alt="Logo Anima Unity" width="200"/></p>
 
 <h1 align="center">Selamat Datang di Organisasi Anima Unity 🐾</h1>
 
