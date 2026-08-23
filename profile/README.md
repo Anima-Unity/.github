@@ -3,7 +3,7 @@
   <br/><br/>
 
   [![Build](https://img.shields.io/badge/Build-Passing-00C896?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/AnimaUnity)
-  [![Version](https://img.shields.io/badge/Version-2.4.1-0090FF?style=flat-square)](https://github.com/AnimaUnity)
+  [![Version](https://img.shields.io/badge/Version-2.5.0-0090FF?style=flat-square)](https://github.com/AnimaUnity)
   [![License](https://img.shields.io/badge/License-MIT-F5A623?style=flat-square)](https://opensource.org/licenses/MIT)
   [![Security](https://img.shields.io/badge/Security-OWASP_Top10-00C896?style=flat-square)](https://github.com/AnimaUnity)
   [![Uptime](https://img.shields.io/badge/Uptime-99.9%25-00C896?style=flat-square)](https://status.animaunity.com)
@@ -23,9 +23,9 @@
 
 | Repository | Status | Deskripsi | Stack |
 |:---|:---:|:---|:---|
-| [`platform`](https://github.com/AnimaUnity/platform) | ![](https://img.shields.io/badge/-Active-00C896?style=flat-square) | Super-App mobile (iOS/Android). Modul Mission Logs, adopsi, notifikasi real-time. | Expo · React Native · TypeScript |
+| [`platform`](https://github.com/AnimaUnity/platform) | ![](https://img.shields.io/badge/-Active-00C896?style=flat-square) | Super-App mobile (iOS/Android). Modul Mission Logs, adopsi, forum komunitas (tree-based pagination), notifikasi real-time (STOMP). | Expo · React Native · Zustand |
 | [`shelteros`](https://github.com/AnimaUnity/shelteros) | ![](https://img.shields.io/badge/-Beta-F5A623?style=flat-square) | Dashboard enterprise untuk manajemen shelter: kapasitas, tracking adopsi, multi-tenant. | React · TypeScript |
-| [`api-service`](https://github.com/AnimaUnity/api-service) | ![](https://img.shields.io/badge/-Active-00C896?style=flat-square) | Backend monolitik modular: persistence, JWT auth, business logic utama. | Spring Boot · PostgreSQL · Hibernate |
+| [`api-service`](https://github.com/AnimaUnity/api-service) | ![](https://img.shields.io/badge/-Active-00C896?style=flat-square) | Backend monolitik modular (Feature-Driven): persistence, JWT/OAuth2 auth, Spring WebSocket, Flyway migrations (V20). | Spring Boot · PostgreSQL · Hibernate |
 | [`anitrack-iot`](https://github.com/AnimaUnity/anitrack-iot) | ![](https://img.shields.io/badge/-Dev-0090FF?style=flat-square) | Firmware GPS tracker hewan + pipeline telemetri MQTT → REST. | C/C++ · MQTT |
 
 ---
@@ -62,18 +62,18 @@ cd api-service && ./gradlew bootRun
 cd platform && npm install && npx expo start
 ```
 
-> Pengembangan via Termux didukung penuh. Lihat [`docs/termux-setup.md`](docs/termux-setup.md).
+> Pengembangan via Termux didukung penuh. Lihat `docs/termux-setup.md`.
 
 ---
 
 ## Engineering Standards
 
-**Commit convention** — [Conventional Commits](https://www.conventionalcommits.org)
+**Commit convention** — [Conventional Commits](https://www.conventionalcommits.org/)
 
 ```
-feat(api): add rescue report endpoint
-fix(platform): resolve adopter auth loop
-docs: update shelter onboarding guide
+feat(community): implement threaded nested replies with pagination
+fix(platform): resolve STOMP websocket deep-linking issue
+docs: add ADR-032 for mobile tree-based pagination
 ```
 
 **PR checklist** — wajib sebelum request review:
@@ -82,6 +82,7 @@ docs: update shelter onboarding guide
 - [ ] Build bersih di Docker
 - [ ] Tidak ada hardcoded secrets atau API keys
 - [ ] Test coverage ≥ 80% untuk kode baru
+- [ ] Dokumentasi arsitektur (ADR) diperbarui untuk keputusan krusial
 - [ ] Breaking changes tercatat di PR description
 
 **Branch strategy:** `main` (production) ← `develop` (integration) ← `feat/*` / `fix/*`
@@ -90,36 +91,37 @@ docs: update shelter onboarding guide
 
 ## Security
 
-Sistem menangani data sensitif: lokasi GPS real-time, data operasional shelter, informasi adopter.
+Sistem menangani data sensitif: lokasi GPS real-time, data operasional shelter, informasi adopter. Kepatuhan terhadap Perlindungan Data Pribadi (PDP) diterapkan secara ketat.
 
 | Kebijakan | Detail |
-|:---|:---|
-| Secrets | Gunakan `.env` atau secret manager. Hardcode = **block PR**. |
-| Auth | JWT RS256 · access token 1h · refresh token 7d |
-| Enkripsi | At-rest: AES-256 · In-transit: TLS 1.3 minimum |
+|---|---|
+| Secrets | Gunakan `.env` atau secret manager. Hardcode = block PR. |
+| Auth | JWT RS256 (access 1h / refresh 7d) · MFA · OAuth2 |
+| Enkripsi | At-rest: AES-256 (Column-Level Encryption) · In-transit: TLS 1.3 minimum |
+| Data Integrity | Soft-delete terimplementasi pada data kritikal (komunitas/laporan) via `deletedAt` |
 | Dependency | `npm audit` + `./gradlew dependencyCheckAnalyze` wajib sebelum release |
-| Vulnerability | Report ke `security@animaunity.com` (privat). **Jangan buka public issue.** SLA: 48 jam. |
+| Vulnerability | Report ke `security@animaunity.com` (privat). Jangan buka public issue. SLA: 48 jam. |
 
-Standar mengacu pada **OWASP Top 10** dan **OWASP Mobile Top 10**.
+Standar mengacu pada [OWASP Top 10](https://owasp.org/www-project-top-ten/) dan [OWASP Mobile Top 10](https://owasp.org/www-project-mobile-top-10/).
 
 ---
 
 ## Roadmap
 
 | Milestone | Target | Status |
-|:---|:---:|:---:|
-| Core API + Auth | Q1 2026 | ✅ |
-| Mobile App (iOS/Android) | Q2 2026 | 🔄 |
-| ShelterOS Beta | Q2 2026 | 🔄 |
-| AniTrack GPS Integration | Q3 2026 | 📋 |
-| Multi-tenant Shelter Network | Q3 2026 | 📋 |
-| Southeast Asia Expansion | Q4 2026 | 📋 |
+|---|---|:---:|
+| Core API, Auth & Security | Q1 2026 | ✅ |
+| Mobile App: Community Forum & Supply Chain | Q2–Q3 2026 | ✅ |
+| ShelterOS Beta | Q3 2026 | 🔄 |
+| Real-time WebSocket Notifications | Q3 2026 | ✅ |
+| AniTrack GPS Integration | Q4 2026 | 📋 |
+| Multi-tenant Shelter Network | Q4 2026 | 📋 |
 
 ---
 
 ## Contributing
 
-Baca [`CONTRIBUTING.md`](CONTRIBUTING.md), buka issue, atau langsung PR.
+Baca `CONTRIBUTING.md`, buka issue, atau langsung PR.
 
 ```bash
 git checkout -b feat/nama-fitur
